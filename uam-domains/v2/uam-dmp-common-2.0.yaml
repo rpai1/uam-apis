@@ -46,6 +46,24 @@ paths:
             proper use by automated tooling.  Tools sometimes do not like
             when there are no paths, but domains do not contain paths.
 definitions:
+  UTMRestResponse:
+    type: object
+    required:
+      - http_status_code
+      - message
+    properties:
+      http_status_code:
+        type: integer
+        minimum: 100
+        exclusiveMinimum: false
+        maximum: 599
+        exclusiveMaximum: false
+      message:
+        type: string
+        maxLength: 500
+    example:
+      http_status_code: 400
+      message: Bad Request. Invalid JSON?
   MetaDataTestSite:
     type: object
     required:
