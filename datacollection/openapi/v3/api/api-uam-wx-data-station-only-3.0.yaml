@@ -6,18 +6,28 @@ info:
     sampling rates.  These models are referenced in the Data Management Plan
     (DMP)."
   version: "1.0.0-oas3"
-  title: API endpoints for UTM TCL DMP CON vehicles data collection
+  title: API endpoints for UAM data collection
   termsOfService: 'http://uam.arc.nasa.gov/terms'
   contact:
     name: 'NASA Ames Research Center, Aviation Systems Division'
-    url: 'https://utm.arc.nasa.gov/'
+    url: 'https://uam.arc.nasa.gov/'
     email: shivanjli.sharma@nasa.gov
   license:
     name: NASA Open Source Agreement
     url: 'https://ti.arc.nasa.gov/opensource/nosa/'
+    
+components:
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+security:
+  - basicAuth: []
 paths:
   /con-wx-operating-point-data-station:
     post:
+      security:
+        - basicAuth: []
       summary: Upload array of ConWxOperatingPointDataStation models.
       responses:
         '200':

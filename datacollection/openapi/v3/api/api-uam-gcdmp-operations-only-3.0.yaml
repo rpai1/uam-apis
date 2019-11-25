@@ -9,14 +9,25 @@ info:
   termsOfService: http://uarm.arc.nasa.gov
   contact:
     name: 'NASA Ames Research Center, Aviation Systems Division'
-    url: 'https://utm.arc.nasa.gov/'
-    email: joseph.rios@nasa.gov
+    url: 'https://uam.arc.nasa.gov/'
+    email: shivanjli.sharma@nasa.gov
   license:
     name: NASA Open Source Agreement
     url: 'https://ti.arc.nasa.gov/opensource/nosa/'
+
+components:
+  securitySchemes:
+    basicAuth:     # <-- arbitrary name for the security scheme
+      type: http
+      scheme: basic
+security:
+  - basicAuth: []  # <-- use the same name here
+  
 paths:
   /operations:
     get:
+      security:
+        - basicAuth: []
       tags:
         - A. Required Endpoints
       summary: Request information regarding Operations
@@ -213,6 +224,8 @@ paths:
                   https://raw.githubusercontent.com/nasa/uam-apis/master/datacollection/openapi/v2/schema/uam-domain-commons-2.0.yaml#/definitions/UTMRestResponse
   '/operations/{gufi}':
     get:
+      security:
+        - basicAuth: []
       tags:
         - A. Required Endpoints
       summary: Retrieve an operation by GUFI.
@@ -271,6 +284,8 @@ paths:
                 $ref: >-
                   https://raw.githubusercontent.com/nasa/uam-apis/master/datacollection/openapi/v2/schema/uam-domain-commons-2.0.yaml#/definitions/UTMRestResponse
     put:
+      security:
+        - basicAuth: []
       tags:
         - A. Required Endpoints
       summary: 'Announce a new, or update an already announced operation.'
