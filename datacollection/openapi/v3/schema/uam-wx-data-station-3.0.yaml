@@ -10,8 +10,7 @@ info:
   license:
     name: NASA Open Source Agreement
     url: 'https://ti.arc.nasa.gov/opensource/nosa/'
-  termsOfService: http://github.com/nasa/term
-   
+  termsOfService: http://github.nasa/uam/
 paths:
   /no-paths:
     put:
@@ -122,9 +121,6 @@ components:
       format: double
       minimum: -180
       maximum: 180
-    Altitude:
-      $ref: >-
-        https://raw.githubusercontent.com/nasa/uam-apis/master/datacollection/openapi/v2/schema/uam-aws-domain-commons-2.0.yaml#/definitions/Altitude
     LatLonAlt:
       description: >-
         Latitude and Longitude should have precision of 7 or more digits.
@@ -140,4 +136,5 @@ components:
         lon:
           $ref: '#/components/schemas/longitude'
         alt:
-          $ref: '#/components/schemas/Altitude'
+          $ref: >-
+            https://raw.githubusercontent.com/nasa/uam-apis/master/datacollection/openapi/v2/schema/uam-aws-domain-commons-2.0.yaml#/definitions/Altitude
