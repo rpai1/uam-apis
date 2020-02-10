@@ -151,8 +151,8 @@ definitions:
     format: double
     minimum: -180.0
     maximum: 180.0
-  Altitude:
-     $ref: https://raw.githubusercontent.com/nasa/uam-apis/master/datacollection/openapi/v2/schema/uam-aws-domain-commons-2.0.yaml#/definitions/Altitude
+#  Altitude:
+#     $ref: https://raw.githubusercontent.com/nasa/uam-apis/master/datacollection/openapi/v2/schema/uam-aws-domain-commons-2.0.yaml#/definitions/Altitude
 
   LatLonAlt:
     description: >-
@@ -165,4 +165,4 @@ definitions:
       lon:
         $ref: '#/definitions/longitude'
       alt:
-       $ref: '#/definitions/Altitude'
+       $ref: 'https://raw.githubusercontent.com/nasa/uam-apis/master/datacollection/openapi/v2/schema/uam-aws-domain-commons-2.0.yaml#/definitions/Altitude'
