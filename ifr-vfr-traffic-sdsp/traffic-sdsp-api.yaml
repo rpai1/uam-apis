@@ -1,0 +1,660 @@
+asyncapi: 2.0.0
+
+info:
+  title: Live IFR/VFR Flights Traffic SDSP for NASA UAM X3
+  version: "0.0.3-draft"
+  description: |
+    The following document describes the available **Socket.IO** events for the Live Traffic SDSP as part of the NASA UAM X3 engineering evaluation.
+
+    ### Disclaimer
+
+    * As of writing, Async API does not capture the nuances of Socket.IO such as Events and Emits. This document should **only** be used for implementation reference and code-generation of objects data models.
+    * 'Events' in Socket.IO are represented in Async API as 'Channels'.
+    * 'SUB' or 'subscribe' in Async API denotes a Socket.IO Client receiving those events, if explicitly listened for.
+    * 'PUB' or 'publish' in Async API denotes a Socket.IO Client emitting those events.
+
+    ### Contact
+    * NASA Ames Research Center, Aviation Systems Division
+    * https://uam.arc.nasa.gov/
+
+  license:
+    name: NASA Open Source Agreement
+    url: https://ti.arc.nasa.gov/opensource/nosa/
+
+defaultContentType: application/json
+
+servers:
+  production:
+    url: /traffic/socket.io/
+    protocol: socket.io
+    description: Live Traffic SDSP Socket.IO Entrypoint
+
+channels:
+  "flight":
+    description: Socket.IO event informing the Client of a new IFR/VFR Flight.
+    subscribe:
+      message:
+        $ref: "#/components/messages/flightPlanEvent"
+
+  "position":
+    description: Socket.IO event informing the Client of a new Position for a single IFR/VFR Flight.
+    subscribe:
+      message:
+        $ref: "#/components/messages/positionEvent"
+
+  "authenticate":
+    description: Socket.IO event published by the Client to authenticate itself with the SDSP.
+    publish:
+      message:
+        $ref: "#/components/messages/authEvent"
+
+  "authenticate_response":
+    description: Socket.IO event informing the Client whether the "authenticate" request passed or failed.
+    subscribe:
+      message:
+        $ref: "#/components/messages/authResponseEvent"
+
+components:
+  messages:
+    flightPlanEvent:
+      name: flightPlanEvent
+      title: Flight Plan Event
+      summary: "Encapsulates information about 1 IFR/VFR Flight."
+      contentType: application/json
+      payload:
+        $ref: "#/components/schemas/flightPlanEventPayload"
+
+    positionEvent:
+      name: positionEvent
+      title: Position Event
+      summary: "Encapsulates information about 1 IFR/VFR Flight's Position."
+      contentType: application/json
+      payload:
+        $ref: "#/components/schemas/positionEventPayload"
+
+    authEvent:
+      name: authEvent
+      title: Authenticate Event
+      summary: "Authenticate Event"
+      contentType: application/json
+      payload:
+        $ref: "#/components/schemas/authEventPayload"
+
+    authResponseEvent:
+      name: authResponseEvent
+      title: Authenticate Response Event
+      summary: "Authenticate Response Event"
+      contentType: application/json
+      payload:
+        $ref: "#/components/schemas/authResponseEventPayload"
+
+  schemas:
+    flightPlanEventPayload:
+      type: object
+      properties:
+        data:
+          $ref: "#/components/schemas/flightPlan"
+        metadata:
+          $ref: "#/components/schemas/metadata"
+
+    flightPlan:
+      type: object
+      properties:
+        gufi:
+          $ref: "#/components/schemas/gufi"
+          description: "A single reference for FF-ICE information pertinent to a flight that is unique globally. [ICAO Doc 9965] This is a reference that uniquely identifies a specific flight and is independent of any particular system. [FIXM]"
+          externalDocs:
+            description: See FIXM 4.2.0 for further information.
+            url: https://www.fixm.aero/releases/FIXM-4.2.0/doc/schema_documentation/Fixm_FlightType.html#Link208
+        aircraftIdentification:
+          type: string
+          example: "NASA123"
+          description: "Name used by Air Traffic Services units to identify and communicate with an aircraft."
+          externalDocs:
+            description: See FIXM 4.2.0 for further information.
+            url: https://www.fixm.aero/releases/FIXM-4.2.0/doc/schema_documentation/Fixm_FlightIdentificationType.html#Link209
+
+        aircraft:
+          type: object
+          properties:
+            aircraftType:
+              type: string
+              example: "B738"
+              description: >-
+                Designator of the aircraft, i.e., aircraft type or special equipment.
+                The type of aircraft enabling the flight. [FIXM]  The aircraft type designator of the aircraft as specified in ICAO Doc 8643.
+              externalDocs:
+                description: See FIXM 4.2.0 for further information.
+                url: https://www.fixm.aero/releases/FIXM-4.2.0/doc/schema_documentation/Fixm_AircraftTypeChoiceType.html#Link20B
+            registration:
+              type: string
+              exampe: "N1234"
+              description: A unique, alphanumeric string that identifies a civil aircraft and consists of the Aircraft Nationality or Common Mark and an additional alphanumeric string, the registration mark, assigned by the state of registry or common mark registering authority. [FIXM]
+              externalDocs:
+                description: See FIXM 4.2.0 for further information.
+                url: https://www.fixm.aero/releases/FIXM-4.2.0/doc/schema_documentation/Fixm_AircraftType.html#Link24C
+            wakeTurbulence:
+              type: string
+              enum:
+                - "L"
+                - "M"
+                - "H"
+                - "J"
+              description: >-
+                ICAO classification of the aircraft wake turbulence, based on the maximum certified take off mass. [FIXM]
+                  "L" - An aircraft type with a maximum certified take-off mass of 7000 kg or less. [ICAO Doc 4444, Appendix 2, ITEM M]
+                  "M" - An aircraft type with a maximum certified take-off mass of less than 136000 kg. but more than 7000 kg. [ICAO Doc 4444, Appendix 2, ITEM M]
+                  "H" - An aircraft type with a maximum certified take-off mass of 136000 kg or more. [ICAO Doc 4444, Appendix 2, ITEM M]
+                  "J" - A super heavy aircraft type e.g. the Airbus A380-800. (In the order of 560,000kg). [FIXM]
+              externalDocs:
+                description: See FIXM 4.2.0 for further information.
+                url: https://www.fixm.aero/releases/FIXM-4.2.0/doc/schema_documentation/Fixm_AircraftType.html#Link24D
+            designatorIcao:
+              type: string
+              example: "AAL"
+              description: >-
+                The identifier of the Aircraft Operator as assigned by ICAO. [FIXM]
+                This is the ICAO Operator Code as standardised by ICAO Doc 8585 Manual on 
+                Designators for Aircraft Operating Agencies, Aeronautical Authorities and Services.
+              externalDocs:
+                description: See FIXM 4.2.0 for further information.
+                url: https://www.fixm.aero/releases/FIXM-4.2.0/doc/schema_documentation/Fixm_AircraftOperatorType.html#Link1E3
+            capabilities:
+              type: object
+              description: >-
+                The capabilities of the flight comprising of the:
+                a) presence of relevant serviceable equipment on board the aircraft;
+                b) equipment and capabilities commensurate with flight crew qualifications; and
+                c) where applicable, authorization from the appropriate authority.
+                [FIXM]
+              externalDocs:
+                description: See FIXM 4.2.0 for further information.
+                url: https://www.fixm.aero/releases/FIXM-4.2.0/doc/schema_documentation/Fixm_AircraftType.html#Link24A
+              properties:
+                communication:
+                  type: string
+                  enum:
+                    - "H"
+                    - "V"
+                    - "Y"
+                  description: >-
+                    The serviceable communications equipment, available on the aircraft at the time of flight, and associated flight crew qualifications that may be used to communicate with ATS units. [FIXM]
+                  externalDocs:
+                    description: See FIXM 4.2.0 for further information.
+                    url: https://www.fixm.aero/releases/FIXM-4.2.0/doc/schema_documentation/Fixm_FlightCapabilitiesType.html#Link250
+                navigation:
+                  type: string
+                  enum:
+                    - "D"
+                    - "F"
+                    - "I"
+                    - "L"
+                    - "O"
+                    - "W"
+                  description: The navigation capability of the aircraft and associated flight crew qualifications. [FIXM]
+                  externalDocs:
+                    description: See FIXM 4.2.0 for further information.
+                    url: https://www.fixm.aero/releases/FIXM-4.2.0/doc/schema_documentation/Fixm_FlightCapabilitiesType.html#Link251
+                surveillance:
+                  type: string
+                  enum:
+                    - "A"
+                    - "B1"
+                    - "B2"
+                    - "C"
+                    - "D"
+                    - "E"
+                    - "G1"
+                    - "H"
+                    - "I"
+                    - "L"
+                    - "P"
+                    - "S"
+                    - "U1"
+                    - "U2"
+                    - "V1"
+                    - "V2"
+                    - "X"
+                  description: >-
+                    A code indicating the SSR and ADS capability of the aircraft. [FIXM]
+                    A: Transponder-Mode A (4 digits-4,096 codes)
+                    B1:ADS-B with dedicated 1090 MHz ADS-B out capability
+                    B2: ADS-B with dedicated 1090 MHz ADS-B out and in capability
+                    C: Transponder-Mode A (4 digits-4,096 codes) and Mode C
+                    D1: ADS-C with FANS 1/A capabilities
+                    E: Transponder Mode S including aircraft identification, pressure-altitude, and extended squitter capability (ADS-B)
+                    G1: ADS-C with ATN capabilities
+                    H: Transponder Mode S including aircraft identification, pressure-altitude, and enhanced surveillance capability
+                    I: Transponder Mode S including aircraft identification, but no pressure-altitude capability
+                    L: Transponder Mode S including aircraft identification, pressure-altitude, extended squitter, and enhanced surveillance capability
+                    P: Transponder Mode S including pressure-altitude, but no aircraft identification capability
+                    S:Transponder-Mode S, including both pressure-altitude and aircraft identification transmission
+                    U1: ADS-B out capability using UAT
+                    U2: ADS-B out and in capability using UAT
+                    V1: ADS-B out capability using VDL mode 4
+                    V2: ADS-B in and out capability using VDL mode 4
+                    X: Transponder Mode S with neither aircraft identification nor pressure-altitude capability
+                  externalDocs:
+                    description: See FIXM 4.2.0 for further information.
+                    url: https://www.fixm.aero/releases/FIXM-4.2.0/doc/schema_documentation/Fixm_SurveillanceCapabilityCodeType.html#LinkD7
+                  xml:
+                    name: SurveillanceCapabilitiesType
+                    namespace: http://www.fixm.aero/flight/4.2
+        flightType:
+          type: string
+          enum:
+            - "M"
+            - "G"
+            - "N"
+            - "S"
+          description: >-
+            Indication of the rule under which an air traffic controller provides categorical handling of a flight.
+            M: Military [ICAO Doc 4444, Item 8]
+            G: General aviation [ICAO Doc 4444, Item 8]
+            N: Non-scheduled air transport operation [ICAO Doc 4444, Item 8]
+            S: Scheduled air service [ICAO Doc 4444, Item 8]
+          externalDocs:
+            description: See FIXM 4.2.0 for further information.
+            url: https://www.fixm.aero/releases/FIXM-4.2.0/doc/schema_documentation/Fixm_FlightType.html#Link271
+        flightRulesCategory:
+          type: string
+          enum:
+            - "M"
+            - "G"
+            - "N"
+            - "S"
+          description: >-
+            The category of flight rules with which the pilot intends to comply. [ICAO Doc 4444, Appendix 2, Item 8]
+            I: The entire flight is intended to be operated under the IFR.
+            V: The entire flight is intended to be operated under the VFR.
+            Y: The flight will initially be operated under the IFR, followed by one or more subsequent changes of flight rules.
+            Z: The flight will initially be operated under the VFR, followed by one or more subsequent changes of flight rules.
+          externalDocs:
+            description: See FIXM 4.2.0 for further information.
+            url: https://www.fixm.aero/releases/FIXM-4.2.0/doc/schema_documentation/Fixm_FlightRulesCategoryType.html#Link106
+        departure:
+          type: object
+          properties:
+            locationIndicator:
+              type: string
+              example: "KDFW"
+              description: Departure airport identifier code, or if unknown, the name of the airport. The aerodrome from which the flight departs. [FIXM]
+              externalDocs:
+                description: See FIXM 4.2.0 for further information.
+                url: https://www.fixm.aero/releases/FIXM-4.2.0/doc/schema_documentation/Fixm_DepartureType.html#Link145
+            estimatedOffBlockTime:
+              $ref: "#/components/schemas/timestamp"
+              description: Proposed departure time as UTC Date-time String in ISO 8601. The estimated time at which the aircraft will commence movement associated with departure. [ICAO Doc 4444]
+              externalDocs:
+                description: See FIXM 4.2.0 for further information.
+                url: https://www.fixm.aero/releases/FIXM-4.2.0/doc/schema_documentation/Fixm_DepartureType.html#Link243
+        arrival:
+          type: object
+          properties:
+            locationIndicator:
+              type: string
+              example: "KSAT"
+              description: The aerodrome of intended landing. This is the aerodrome at which the flight is scheduled to arrive
+              externalDocs:
+                description: See FIXM 4.2.0 for further information.
+                url: https://www.fixm.aero/releases/FIXM-4.2.0/doc/schema_documentation/Fixm_ArrivalType.html#Link149
+        flightRouteInformation:
+          type: object
+          properties:
+            routeText:
+              type: string
+              example: "KDFW./.KDFW.JASPA5.WINDU..KSAT"
+              description: The route of flight defined by using Navigational Aid (NAVAID) identifier codes and airways.
+              externalDocs:
+                description: See FIXM 4.2.0 for further information.
+                url: https://www.fixm.aero/releases/FIXM-4.2.0/doc/schema_documentation/Fixm_FlightRouteInformationType.html#Link226
+            cruisingLevel:
+              $ref: "#/components/schemas/Altitude"
+              description: The filed altitude (flight level) for the first or the whole cruising portion of the flight.
+              externalDocs:
+                description: See FIXM 4.2.0 for further information.
+                url: https://www.fixm.aero/releases/FIXM-4.2.0/doc/schema_documentation/Fixm_FlightRouteInformationType.html#Link1F2
+            cruisingSpeed:
+              $ref: "#/components/schemas/Speed"
+              description: The true airspeed for the first or the whole cruising portion of the flight.  This can be for a filed flight or an active flight. This element is strategic in nature
+              externalDocs:
+                description: See FIXM 4.2.0 for further information.
+                url: https://www.fixm.aero/releases/FIXM-4.2.0/doc/schema_documentation/Fixm_FlightRouteInformationType.html#Link109
+            estimatedEnRouteDuration:
+              type: number
+              example: 0
+              description: Estimated en route duration, in ms.
+              externalDocs:
+                description: See FIXM 4.2.0 for further information.
+                url: xxhttps://www.fixm.aero/releases/FIXM-4.2.0/doc/schema_documentation/Fixm_SurveillanceCapabilityCodeType.html#LinkD7
+            totalEstimatedElapsedTime:
+              type: number
+              example: 0
+              description: >-
+                For IFR flights, the estimated time required from take-off to arrive
+                over that designated point, defined by reference to navigation aids, 
+                from which it is intended that an instrument approach procedure will 
+                be commenced, or, if no navigation aid is associated with the destination 
+                aerodrome, to arrive over the destination aerodrome. 
+
+                For VFR flights, the estimated time required from take-off to arrive 
+                over the destination aerodrome. [ICAO Doc 4444]
+
+                For a flight plan received from an aircraft in flight, the total estimated 
+                elapsed time is the estimated time from the first point of the route to 
+                which the flight plan applies to the termination point of the flight plan. 
+                [ICAO Doc 4444, Appendix 2, ITEM 16]
+            externalDocs:
+              description: See FIXM 4.2.0 for further information.
+              url: https://www.fixm.aero/releases/FIXM-4.2.0/doc/schema_documentation/Fixm_FlightRouteInformationType.html#Link23B
+        supplementaryData:
+          type: object
+          properties:
+            fuelEndurance:
+              type: number
+              example: 0
+              description: >-
+                The estimated maximum length of time the aircraft can spend in the cruise 
+                phase of flight, determined by the amount of fuel at takeoff. [FIXM]
+              externalDocs:
+                description: See FIXM 4.2.0 for further information.
+                url: https://www.fixm.aero/releases/FIXM-4.2.0/doc/schema_documentation/Fixm_SupplementaryDataType.html#Link238
+
+            personsOnBoard:
+              type: number
+              example: 0
+              description: >-
+                The total number of persons (passengers and crew) on board the aircraft. 
+                [ICAO Doc 4444, Appendix 2, Item 19]
+                Total number of persons on board (POB).
+              externalDocs:
+                description: See FIXM 4.2.0 for further information.
+                url: https://www.fixm.aero/releases/FIXM-4.2.0/doc/schema_documentation/Fixm_SupplementaryDataType.html#Link231
+
+    positionEventPayload:
+      type: object
+      properties:
+        data:
+          $ref: "#/components/schemas/position"
+        metadata:
+          $ref: "#/components/schemas/metadata"
+
+    position:
+      type: object
+      properties:
+        gufi:
+          $ref: "#/components/schemas/gufi"
+          description: "A single reference for FF-ICE information pertinent to a flight that is unique globally. [ICAO Doc 9965] This is a reference that uniquely identifies a specific flight and is independent of any particular system. [FIXM]"
+          externalDocs:
+            description: See FIXM 4.2.0 for further information.
+            url: https://www.fixm.aero/releases/FIXM-4.2.0/doc/schema_documentation/Fixm_FlightType.html#Link208
+        aircraftIdentification:
+          type: string
+          example: "NASA123"
+          description: "Name used by Air Traffic Services units to identify and communicate with an aircraft."
+          externalDocs:
+            description: See FIXM 4.2.0 for further information.
+            url: https://www.fixm.aero/releases/FIXM-4.2.0/doc/schema_documentation/Fixm_FlightIdentificationType.html#Link209
+        targetPositionTime:
+          $ref: "#/components/schemas/timestamp"
+          description: This element specifies the time associated with the raw radar return. Track time as UTC Date-time String in ISO 8601.
+          externalDocs:
+            description: See FIXM 4.2.0 for further information.
+            url: https://www.fixm.aero/releases/FIXM-4.2.0/doc/schema_documentation/Fixm_TimeType.html#LinkA6
+        location:
+          $ref: "#/components/schemas/Point"
+          description: "This element specifies the actual location of an active flight as reported by surveillance, for a flight tracked by radar, or from the position part of a pilot progress report, for an oceanic flight or a flight operating in a non-radar airspace. [FIXM definition] This list of doubles contains the latitude and longitude of the location in order of LATITUDE FIRST, THEN LONGITUDE."
+          externalDocs:
+            description: See FIXM 4.2.0 for further information.
+            url: https://www.fixm.aero/releases/FIXM-4.2.0/doc/schema_documentation/Fixm_GeographicalPositionType.html#Link150
+        altitude:
+          $ref: "#/components/schemas/Altitude"
+          description: Altitude in feet.
+          externalDocs:
+            description: See FIXM 4.2.0 for further information.
+            url: https://www.fixm.aero/releases/FIXM-4.2.0/doc/schema_documentation/Fixm_AltitudeType.html#Link6B
+        actualSpeed:
+          $ref: "#/components/schemas/Speed"
+          description: Actual Groundspeed in KTs.
+          externalDocs:
+            description: See FIXM 4.2.0 for further information.
+            url: https://www.fixm.aero/releases/FIXM-4.2.0/doc/schema_documentation/Fixm_GroundSpeedType.html#Link77
+        track:
+          $ref: "#/components/schemas/Track"
+          description: The direction the aircraft is flying over the ground relative to the true north. It is the heading of the aircraft as impacted by the wind.
+          externalDocs:
+            description: See FIXM 4.2.0 for further information.
+            url: https://www.fixm.aero/releases/FIXM-4.2.0/doc/schema_documentation/Fixm_AngleType.html#Link6D
+
+    metadata:
+      type: object
+      properties:
+        brodcastTimestamp:
+          $ref: "#/components/schemas/timestamp"
+          description: UTC Date-time String in ISO 8601. Denotes when the Traffic SDSP initiated the brodcast.
+        sourceTimestamp:
+          $ref: "#/components/schemas/timestamp"
+          description: UTC Date-time String in ISO 8601. Denotes when the Source measured the data.
+
+    authEventPayload:
+      type: object
+      properties:
+        token:
+          type: string
+          example: "token"
+          description: "Bearer Token from NASA UAM-X3 OAuth2 Service."
+
+    authResponseEventPayload:
+      type: object
+      properties:
+        authenticate_response:
+          type: string
+          example: "Authentication Passed || Authentication Failed"
+          description: "Authentication Response."
+
+    timestamp:
+      description: >-
+        Timestamps MUST follow the guidance set forth in RFC3339.
+        This RFC defines a profile for ISO8601 focused on interoperability of Internet
+        based systems.  This profile makes certain design decisions based on
+        reducing rarely used options, elimination of redundant information, and
+        overall simplicity.
+
+        From these goals and insight from building interoperable systems,
+        RFC3339 provides a grammar for timestamps.  Please see
+
+        https://tools.ietf.org/html/rfc3339#section-5.6
+
+        for that grammar and the sections preceding that grammar for more
+        detailed discussion.
+
+        For UTM, we have attempted to reduce the grammar to a regular expression,
+        but this does not take into account all rules.  For example, a valid
+        timestamp should not allow 30 days in February, but this is not in the
+        regular expression.  Likewise, leap years are not captured in the
+        regular expression.  Thus it is possible for a timestamp to satisfy this
+        RE, but still not be valid and, thus, be rejected by some components of
+        UTM.
+
+        Note that this UTM format specifies millisecond precision for all
+        time stamps.  This is why the min and max length are fixed at 24.
+
+        Note that this UTM format specifies UTC time indicated by a trailing 'Z'.
+
+        Note that this UTM format specifies date and time separation with a 'T'.
+
+      type: "string"
+      format: "iso8601"
+      minLength: 24
+      maxLength: 24
+      pattern: "^([0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(\\.[0-9]{3})Z$"
+      example: "2020-04-20T13:37:56.118Z"
+
+    gufi:
+      type: string
+      pattern: "^[0-9a-fA-F]{8}\\-[0-9a-fA-F]{4}\\-4[0-9a-fA-F]{3}\\-[8-b][0-9a-fA-F]{3}\\-[0-9a-fA-F]{12}$"
+      example: "00000000-0000-4444-8888-FEEDDEADBEEF"
+      format: uuid
+      maxLength: 36
+      minLength: 36
+
+    Point:
+      type: object
+      description: GeoJSON Point, limited to 2D.
+      externalDocs:
+        url: https://tools.ietf.org/html/rfc7946#section-3.1.2
+      properties:
+        type:
+          description: |
+            The type of Geometry. In this case, must be 'Point' per GeoJSON spec.
+          type: string
+          enum:
+            - Point
+        coordinates:
+          type: array
+          maxItems: 2
+          minItems: 2
+          items:
+            type: number
+            format: double
+          example: [-122.42, 37.77]
+
+    Altitude:
+      type: object
+      required:
+        - altitudeValue
+        - verticalReference
+        - unitsOfMeasure
+      properties:
+        altitudeValue:
+          description: >-
+            The numeric value of the altitude. Note that min and max values are
+            added as a sanity check. As use cases evolve and more options are
+            made available in terms of units of measure or reference systems,
+            these bounds should be re-evaluated.
+          type: number
+          format: double
+          minimum: -8000.0
+          maximum: 100000.0
+        verticalReference:
+          description: >-
+            A code indicating the reference for a vertical distance. See AIXM 5.1
+            and FIXM 4.2.0. FIXM and AIXM allow for 'SFC' which is equivalent to AGL.
+          externalDocs:
+            description: See FIXM 4.2.0 for further information.
+            url: https://www.fixm.aero/releases/FIXM-4.2.0/doc/schema_documentation/Fixm_VerticalReferenceType.html#Link88
+          xml:
+            name: VerticalReferenceType
+            namespace: http://www.fixm.aero/base/4.2
+            prefix: fb
+            attribute: false
+          type: string
+          enum:
+            - W84
+        unitsOfMeasure:
+          description: >-
+            The reference quantities used to express the value of altitude. 
+            See FIXM 4.2.0. FIXM allows for feet or meters.
+          externalDocs:
+            description: See FIXM 4.2.0 for further information.
+            url: https://www.fixm.aero/releases/FIXM-4.2.0/doc/schema_documentation/Fixm_UomHeightType.html#LinkAD
+          xml:
+            name: UomHeightType
+            namespace: http://www.fixm.aero/base/4.2
+            prefix: fb
+            attribute: false
+          type: string
+          enum:
+            - FT
+        source:
+          description: >-
+            Experimental field for testing and discussion to determine
+            applicability.
+          type: string
+          enum:
+            - ONBOARD_SENSOR
+            - OTHER
+
+    Speed:
+      type: object
+      required:
+        - speedValue
+        - unitsOfMeasure
+      properties:
+        speedValue:
+          description: >-
+            Ground speed int the direction of travel, in units as specifed by track_ground_speed_units. 
+            Position track_ground_speed MUST be >= 0.0.
+          type: number
+          format: double
+          minimum: 0.0
+          maximum: 100000.0
+        unitsOfMeasure:
+          description: >-
+            The reference quantities used to express the value of ground speed as provided in track_ground_speed.
+            KT: Knots.
+            FIXM allows KT (knots) and KM_H (kilometers per hour) but we only allow the KT choice.
+          externalDocs:
+            description: See FIXM 4.2.0 for further information.
+            url: https://www.fixm.aero/releases/FIXM-4.2.0/doc/schema_documentation/Fixm_UomGroundSpeedType.html#LinkAC
+          xml:
+            name: UomGroundSpeedType
+            namespace: http://www.fixm.aero/base/4.2
+            prefix: fb
+            attribute: true
+          type: string
+          enum:
+            - KT
+
+    Track:
+      type: object
+      required:
+        - bearing
+        - bearingReference
+        - unitsOfMeasure
+      properties:
+        bearing:
+          description: >-
+            The direction of travel relative to track_bearing_reference in
+            degrees.
+            Position track_bearing value MUST be >= 0.0 and < 360.0.
+            Note that FIXM allows for
+            the value of 360.0, while UTM does not.  The reason is for clarity by
+            not allowing two numbers (0.0 and 360.0) to represent the same
+            measurement.
+          type: number
+          format: double
+          minimum: 0.0
+          maximum: 360.0
+        bearingReference:
+          description: >-
+            A code indicating the direction of the zero bearing.
+            TRUE_NORTH This value indicates that the direction is relative to True North. MAGNETIC_NORTH This value indicates that the direction is relative to Magnetic North.
+          externalDocs:
+            description: See FIXM 4.2.0 for further information.
+            url: https://www.fixm.aero/releases/FIXM-4.2.0/doc/schema_documentation/Fixm_BearingType.html#Link6F
+          xml:
+            name: BearingType
+            namespace: http://www.fixm.aero/base/4.2
+            prefix: fb
+            attribute: false
+          type: string
+          enum:
+            - TRUE_NORTH
+            - MAGNETIC_NORTH
+        unitsOfMeasure:
+          description: >-
+            The reference quantities used to express the value of angles. [ISO 19103, chapter 6.5.7.10]
+            As in FIXM, only a single option is provided (degrees). Including this field allows for clarity in the data provided and allows for the
+            potential of other units of measure in the future.
+          externalDocs:
+            description: See FIXM 4.2.0 for further information.
+            url: https://www.fixm.aero/releases/FIXM-4.2.0/doc/schema_documentation/Fixm_UomAngleType.html#LinkA9
+          xml:
+            name: UomAngleType
+            namespace: http://www.fixm.aero/base/4.2
+            prefix: fb
+            attribute: true
+          type: string
+          enum:
+            - DEG
